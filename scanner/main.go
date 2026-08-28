@@ -24,6 +24,23 @@ type TLSResult struct {
 	Issues []string `json:"issues"`
 }
 
+type scanRequest struct {
+	Domain string `json:"domain"`
+}
+
+type HeaderCheck struct {
+	Name string `json:"name"`
+	Present bool `json:"present"`
+	Value string `json:"value,omitempty"`
+}
+
+type HeadersResult struct {
+	Domain string `json:"domain"`
+	Valid bool `json:"valid"`
+	Checks []HeaderCheck `json:"checks"`
+	Issues []string `json:"issues"`
+}
+
 func tlsVersionName(version uint16) string {
 	switch version {
 	case tls.VersionTLS10:
@@ -76,9 +93,6 @@ func checkTLS(domain string) (*TLSResult, error) {
 	}, nil
 }
 
-type scanRequest struct {
-	Domain string `json:"domain"`
-}
 
 func tlsHandler(w http.ResponseWriter, r *http.Request) {
 	var req scanRequest
@@ -97,9 +111,69 @@ func tlsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func checkHeaders(domain string) (*HeadersResult, error){
+	url := "https://" + domain
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch %s: %w", url, err)
+	}
+	defer resp.Body.Close()
+
+	securityHeaders := []string{
+		"Strict-Transport-Security",
+		"Content-Security-Policy",
+		"X-Frame-Options",
+		"X-Content-Type-Options",
+	}
+
+	var checks []HeaderCheck
+	issues := []string{}
+
+	for _, headerName := range securityHeaders {
+		value := resp.Header.Get(headerName)
+		present := value != ""
+
+		checks = append(checks, HeaderCheck{
+			Name: headerName,
+			Present: present,
+			Value: value,
+		})
+
+		if !present {
+			issues = append(issues, fmt.Sprintf("missing header: %s", headerName))
+		}
+	}
+
+	return &HeadersResult{
+		Domain: domain,
+		Valid: len(issues) == 0,
+		Checks: checks,
+		Issues: issues,
+	}, nil
+}
+
+func headersHandler(w http.ResponseWriter, r *http.Request){
+	var req scanRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	result, err := checkHeaders(req.Domain)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
 func main(){
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/scan/tls", tlsHandler)
+	http.HandleFunc("/scan/headers", headersHandler)
 
 	log.Println("scanner service listening on :8081")
 	log.Fatal(http.ListenAndServe(":8081", nil))

@@ -23,5 +23,18 @@ async def scan_tls(request: ScanRequest):
 			)
 		except httpx.ConnectError:
 			raise HTTPException(status_code=502, detail="scanner service is unreachable")
-			
+
 		return response.json()
+
+@app.post("/scan/headers")
+async def scan_headers(request: ScanRequest):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SCANNER_URL}/scan/headers",
+                json={"domain": request.domain},
+            )
+        except httpx.ConnectError:
+            raise HTTPException(status_code=502, detail="scanner service is unreachable")
+
+        return response.json()
