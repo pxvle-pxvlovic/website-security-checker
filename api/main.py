@@ -38,3 +38,16 @@ async def scan_headers(request: ScanRequest):
             raise HTTPException(status_code=502, detail="scanner service is unreachable")
 
         return response.json()
+
+@app.post("/scan/email")
+async def scan_email(request: ScanRequest):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{SCANNER_URL}/scan/email",
+                json={"domain": request.domain},
+            )
+        except httpx.ConnectError:
+            raise HTTPException(status_code=502, detail="scanner service is unreachable")
+
+        return response.json()

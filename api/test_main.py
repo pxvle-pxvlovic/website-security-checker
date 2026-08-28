@@ -65,3 +65,31 @@ def test_scan_headers_scanner_unreachable():
 
     assert response.status_code == 502
     assert "unreachable" in response.json()["detail"]
+
+def test_scan_email_success():
+    fake_response_data = {
+        "domain": "github.com",
+        "valid": True,
+        "has_spf": True,
+        "spf_record": "v=spf1 ~all",
+        "has_dmarc": True,
+        "dmarc_policy": "quarantine",
+        "issues": [],
+    }
+
+    fake_response = MagicMock()
+    fake_response.json.return_value = fake_response_data
+
+    with patch("main.httpx.AsyncClient.post", new=AsyncMock(return_value=fake_response)):
+        response = client.post("/scan/email", json={"domain": "github.com"})
+
+    assert response.status_code == 200
+    assert response.json()["has_spf"] is True
+
+
+def test_scan_email_scanner_unreachable():
+    with patch("main.httpx.AsyncClient.post", new=AsyncMock(side_effect=httpx.ConnectError("connection refused"))):
+        response = client.post("/scan/email", json={"domain": "github.com"})
+
+    assert response.status_code == 502
+    assert "unreachable" in response.json()["detail"]
