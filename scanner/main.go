@@ -123,6 +123,11 @@ func tlsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func hasSecurityHeader(headers http.Header, name string) bool {
+	value := headers.Get(name)
+	return value != ""
+}
+
 func checkHeaders(domain string) (*HeadersResult, error){
 	url := "https://" + domain
 
@@ -144,7 +149,7 @@ func checkHeaders(domain string) (*HeadersResult, error){
 
 	for _, headerName := range securityHeaders {
 		value := resp.Header.Get(headerName)
-		present := value != ""
+		present := hasSecurityHeader(resp.Header, headerName)
 
 		checks = append(checks, HeaderCheck{
 			Name: headerName,
@@ -182,6 +187,10 @@ func headersHandler(w http.ResponseWriter, r *http.Request){
 	json.NewEncoder(w).Encode(result)
 }
 
+func isWeakSPF(record string) bool {
+	return strings.Contains(record, "+all")
+}
+
 func checkEmailSecurity(domain string) (*EmailSecurityResult, error) {
 	issues := []string{}
 
@@ -202,7 +211,7 @@ func checkEmailSecurity(domain string) (*EmailSecurityResult, error) {
 
 	if !hasSPF {
 		issues = append(issues, "no SPF record found")
-	} else if strings.Contains(spfRecord, "+all") {
+	} else if isWeakSPF(spfRecord) {
 		issues = append(issues, "SPF record uses '+all', which allows any server to send mail as this domain")
 	}
 

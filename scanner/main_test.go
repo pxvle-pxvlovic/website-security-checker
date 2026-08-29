@@ -1,6 +1,7 @@
 package main
 
 import "testing"
+import "net/http"
 
 func TestTlsVersionName(t *testing.T){
 	got := tlsVersionName(0x0304)
@@ -118,5 +119,25 @@ func TestExtractDMARCPolicy(t *testing.T) {
 
 	if got != want {
 		t.Errorf("extractDMARCPolicy(...) = %q, want %q", got, want)
+	}
+}
+
+func TestIsWeakSPF(t *testing.T) {
+    got := isWeakSPF("+all")
+    want := true
+
+    if got != want {
+        t.Errorf("isWeakSPF(...) = %v, want %v", got, want)
+    }
+}
+
+func TestHasSecurityHeader(t *testing.T){
+	headers := http.Header{}
+	headers.Set("X-Frame-Options", "deny")
+	got := hasSecurityHeader(headers, "X-Frame-Options")
+	want := true
+
+	if got != want{
+		t.Errorf("hasSecurityHeader(...) = %v, want %v", got, want)
 	}
 }
