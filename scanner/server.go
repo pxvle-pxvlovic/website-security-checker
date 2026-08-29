@@ -5,6 +5,12 @@ import (
 	"net/http"
 )
 
+func decodeRequest(r *http.Request) (scanRequest, error){
+	var req scanRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	return req, err
+}
+
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
@@ -15,8 +21,8 @@ type scanRequest struct {
 }
 
 func tlsHandler(w http.ResponseWriter, r *http.Request) {
-	var req scanRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	req, err := decodeRequest(r)
+	if err != nil {
 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
@@ -32,8 +38,8 @@ func tlsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func headersHandler(w http.ResponseWriter, r *http.Request){
-	var req scanRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	req, err := decodeRequest(r)
+	if err != nil {
 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
@@ -49,8 +55,8 @@ func headersHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func emailHandler(w http.ResponseWriter, r *http.Request) {
-	var req scanRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	req, err := decodeRequest(r) 
+	if err != nil {
 		http.Error(w, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
