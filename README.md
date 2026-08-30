@@ -73,11 +73,6 @@ cd api && pytest -v
 
 ## Future learning & future work
 
-- [x] TLS/certificate check — Go + Python, tested
-- [x] HTTP security headers check — Go + Python, tested
-- [x] SPF/DMARC email security check — Go + Python, tested
-- [x] Go code organized into per-concern files
-- [x] Shared-logic refactors on both sides
 - [ ] Persisted scan history (database)
 - [ ] Frontend
 - [ ] Containerization (Docker) and real deployment

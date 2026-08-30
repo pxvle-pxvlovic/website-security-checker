@@ -1,6 +1,6 @@
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
-from main import app, call_scanner
+from main import app, call_scanner, calculate_score
 import httpx
 import pytest
 
@@ -105,3 +105,22 @@ async def test_call_scanner_uses_correct_url():
         await call_scanner("/scan/tls", "example.com")
 
     mock_post.assert_called_with("http://localhost:8081/scan/tls", json={"domain": "example.com"})
+
+
+def test_calculate_score():
+    tls = {"valid": True}
+    headers = {"valid": True}
+    email = {"valid": True}
+
+    result = calculate_score(tls, headers, email)
+
+    assert result == 3
+
+def test_calculate_score_partial():
+    tls = {"valid": True}
+    headers = {"valid": False}
+    email = {"valid": False}
+
+    result = calculate_score(tls, headers, email)
+
+    assert result == 1
