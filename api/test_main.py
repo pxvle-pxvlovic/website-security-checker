@@ -1,8 +1,11 @@
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
 from main import app, call_scanner, calculate_score
+from database import init_db, save_scan
 import httpx
 import pytest
+import tempfile
+import os
 
 client = TestClient(app)
 
@@ -124,3 +127,34 @@ def test_calculate_score_partial():
     result = calculate_score(tls, headers, email)
 
     assert result == 1
+
+def test_save_scan_writes_a_row():
+    fd, temp_db_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+
+    import database
+    original_db_path = database.DB_PATH
+    database.DB_PATH = temp_db_path
+
+    try:
+        init_db()
+        save_scan(
+            domain="example.com",
+            score=3,
+            tls_result='{"valid": true}',
+            headers_result='{"valid": true}',
+            email_result ='{"valid": true}',
+            scanned_at="2026-01-01T00:00:00",
+        )
+
+        conn = database.sqlite3.connect(temp_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT domain, score FROM scans")
+        row = cursor.fetchone()
+        conn.close()
+
+        assert row == ("example.com", 3)
+
+    finally:
+        database.DB_PATH = original_db_path
+        os.remove(temp_db_path)

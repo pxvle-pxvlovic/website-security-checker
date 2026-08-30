@@ -2,13 +2,25 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import asyncio
+from database import init_db, save_scan
+import json
+from datetime import datetime
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+	init_db()
+	yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 SCANNER_URL = "http://localhost:8081"
 
 class ScanRequest(BaseModel):
 	domain: str
+
 
 @app.get("/health")
 def health():
@@ -33,6 +45,10 @@ async def run_all_checks(domain: str) -> dict:
 	    email_task = tg.create_task(call_scanner("/scan/email", domain))
 
 	score = calculate_score(tls_task.result(), headers_task.result(), email_task.result())
+	scanned_at = datetime.now().isoformat()
+
+	save_scan(domain, score, json.dumps(tls_task.result()), json.dumps(headers_task.result()), json.dumps(email_task.result()), scanned_at)
+
 
 	return {"tls": tls_task.result(), "headers": headers_task.result(), "email": email_task.result(), "score": score}
 
