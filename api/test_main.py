@@ -1,7 +1,8 @@
 from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
-from main import app
+from main import app, call_scanner
 import httpx
+import pytest
 
 client = TestClient(app)
 
@@ -73,6 +74,7 @@ def test_scan_email_success():
         "has_spf": True,
         "spf_record": "v=spf1 ~all",
         "has_dmarc": True,
+
         "dmarc_policy": "quarantine",
         "issues": [],
     }
@@ -93,3 +95,13 @@ def test_scan_email_scanner_unreachable():
 
     assert response.status_code == 502
     assert "unreachable" in response.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_call_scanner_uses_correct_url():
+    fake_response = MagicMock()
+    fake_response.json.return_value = {"domain": "example.com"}
+
+    with patch("main.httpx.AsyncClient.post", new=AsyncMock(return_value=fake_response)) as mock_post:
+        await call_scanner("/scan/tls", "example.com")
+
+    mock_post.assert_called_with("http://localhost:8081/scan/tls", json={"domain": "example.com"})
