@@ -6,13 +6,13 @@ from database import init_db, save_scan, get_scans_by_domain, get_all_scans
 import json
 from datetime import datetime
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	init_db()
 	yield
-
 
 app = FastAPI(lifespan=lifespan)
 
@@ -27,6 +27,12 @@ class ScanSummary(BaseModel):
 	score: int
 	scanned_at: str
 
+app.add_middleware(
+	CORSMiddleware,
+	allow_origins=["*"],
+	allow_methods=["*"],
+	allow_headers=["*"],
+)
 
 
 @app.get("/health")
