@@ -32,6 +32,28 @@ def save_scan(domain: str, score: int, tls_result: str, headers_result: str, ema
 	conn.close()
 
 
+def get_scans_by_domain(domain: str):
+	conn = sqlite3.connect(DB_PATH)
+	cursor = conn.cursor()
+	cursor.execute(
+		"SELECT id, domain, score, scanned_at FROM scans WHERE domain = ? ORDER BY scanned_at DESC",
+		(domain,)
+	)
+	rows = cursor.fetchall()
+	conn.close()
+	return rows
+
+
+def get_all_scans():
+	conn = sqlite3.connect(DB_PATH)
+	cursor = conn.cursor()
+	cursor.execute(
+		"SELECT id, domain, score, scanned_at FROM scans ORDER BY scanned_at DESC",
+	)
+	rows = cursor.fetchall()
+	conn.close()
+	return rows
+
 if __name__ == "__main__":
     init_db()
     print("Database initialized")

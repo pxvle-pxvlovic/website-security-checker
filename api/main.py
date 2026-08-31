@@ -2,7 +2,7 @@ import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import asyncio
-from database import init_db, save_scan
+from database import init_db, save_scan, get_scans_by_domain, get_all_scans
 import json
 from datetime import datetime
 from contextlib import asynccontextmanager
@@ -20,6 +20,13 @@ SCANNER_URL = "http://localhost:8081"
 
 class ScanRequest(BaseModel):
 	domain: str
+
+class ScanSummary(BaseModel):
+	id: int
+	domain: str
+	score: int
+	scanned_at: str
+
 
 
 @app.get("/health")
@@ -82,3 +89,25 @@ def calculate_score(tls: dict, headers: dict, email: dict) -> int:
 		counter += 1
 
 	return counter
+
+@app.get("/scans/{domain}")
+def get_scans(domain: str):
+	rows = get_scans_by_domain(domain)
+
+	summaries = []
+	for row in rows:
+		summary = ScanSummary(id=row[0], domain=row[1], score=row[2], scanned_at=row[3])
+		summaries.append(summary)
+
+	return summaries
+
+@app.get("/scans")
+def get_scans_whole():
+	rows = get_all_scans()
+	summaries = []
+	for row in rows:
+		summary = ScanSummary(id=row[0], domain=row[1], score=row[2], scanned_at=row[3])
+		summaries.append(summary)
+
+	return summaries
+
