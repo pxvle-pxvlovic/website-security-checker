@@ -1,0 +1,20 @@
+services:
+  scanner:
+    build: ./scanner
+    ports:
+      - "8081:8081"
+
+  api:
+    build: ./api
+    ports:
+      - "8000:8000"
+    environment:
+      - SCANNER_URL=http://scanner:8081
+      - DB_PATH=/app/data/scans.db
+    depends_on:
+      - scanner
+    volumes:
+      - scan-data:/app/data
+
+volumes:
+  scan-data:

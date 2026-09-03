@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-SCANNER_URL = "http://localhost:8081"
+SCANNER_URL = os.environ.get("SCANNER_URL", "http://localhost:8081")
 
 class ScanRequest(BaseModel):
 	domain: str
