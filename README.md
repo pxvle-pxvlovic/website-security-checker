@@ -169,4 +169,4 @@ make clean without a more advanced feature.
 
 ## License
 
-Not yet decided — currently a private, in-progress learning project.
+MIT - see [LICENSE](LICENSE).
