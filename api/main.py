@@ -1,5 +1,5 @@
 import httpx
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 import asyncio
 from database import init_db, save_scan, get_scans_by_domain, get_all_scans
@@ -17,6 +17,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 SCANNER_URL = os.environ.get("SCANNER_URL", "http://localhost:8081")
+API_KEY = os.environ.get("API_KEY")
 
 class ScanRequest(BaseModel):
 	domain: str
@@ -34,6 +35,9 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
+def verify_api_key(x_api_key: str = Header(...)):
+	if x_api_key != API_KEY:
+		raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 @app.get("/health")
 def health():
@@ -80,7 +84,7 @@ async def scan_email(request: ScanRequest):
 	return await call_scanner("/scan/email", request.domain)
 
 @app.post("/scan")
-async def scan(request: ScanRequest):
+async def scan(request: ScanRequest, api_key: str = Depends(verify_api_key)):
 	return await run_all_checks(request.domain)
 
 
@@ -97,7 +101,7 @@ def calculate_score(tls: dict, headers: dict, email: dict) -> int:
 	return counter
 
 @app.get("/scans/{domain}")
-def get_scans(domain: str):
+def get_scans(domain: str, api_key: str = Depends(verify_api_key)):
 	rows = get_scans_by_domain(domain)
 
 	summaries = []
@@ -108,7 +112,7 @@ def get_scans(domain: str):
 	return summaries
 
 @app.get("/scans")
-def get_scans_whole():
+def get_scans_whole(api_key: str = Depends(verify_api_key)):
 	rows = get_all_scans()
 	summaries = []
 	for row in rows:

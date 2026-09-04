@@ -7,6 +7,10 @@
 <body>
 	<h1>Website Security Checker</h1>
 
+	<div>
+		<input type="password" id="api-key-input" placeholder="Your API key">
+	</div>
+
 	<form id="scan-form">
 		<input type="text" id="domain-input" placeholder="example.com" required>
 		<button type="submit">Scan</button>
@@ -19,11 +23,15 @@
 			event.preventDefault();
 			
 			const domain = document.getElementById("domain-input").value;
+			const apiKey = document.getElementById("api-key-input").value;
 			document.getElementById("results").innerHTML = "<p>Scanning...</p>";
 
 			const response = await fetch("http://localhost:8000/scan",{
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: { 
+					"Content-Type": "application/json",
+					"X-API-Key": apiKey
+				},
 				body: JSON.stringify({ domain: domain })
 			});
 
@@ -56,7 +64,9 @@
         		<p>Email (SPF/DMARC): ${data.email.valid ? "Configured" : "Issues found"}</p>
         		${data.email.issues.length > 0 ? `<ul>${emailIssuesHtml}</ul>` : ""}
     		`;
-    		const historyResponse = await fetch(`http://localhost:8000/scans/${domain}`);
+    		const historyResponse = await fetch(`http://localhost:8000/scans/${domain}`, {
+    			headers: { "X-API-Key": apiKey }
+    		});
     		const historyData = await historyResponse.json();
 
     		let historyHtml = "";
