@@ -15,6 +15,10 @@ services:
       - scanner
     volumes:
       - scan-data:/app/data
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
 
 volumes:
   scan-data:
