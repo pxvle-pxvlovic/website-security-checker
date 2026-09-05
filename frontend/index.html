@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Website Security Checker</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
 	<h1>Website Security Checker</h1>
@@ -57,11 +58,11 @@
 			resultsDiv.innerHTML = `
 				<h2>${data.domain ?? domain}</h2>
 				<p>Score: ${data.score} / 3</p>
-				<p>TLS: ${data.tls.valid ? "Valid" : "Issues found"}</p>
+				<p class="${data.tls.valid ? "status-good" : "status-bad"}">TLS: ${data.tls.valid ? "Valid" : "Issues found"}</p>
 				${data.tls.issues.length > 0 ? `<ul>${tlsIssuesHtml}</ul>` : ""}
-        		<p>Headers: ${data.headers.valid ? "All present" : "Missing some"}</p>
+        		<p class="${data.headers.valid ? "status-good" : "status-bad"}">Headers: ${data.headers.valid ? "All present" : "Missing some"}</p>
         		${data.headers.issues.length > 0 ? `<ul>${headerIssuesHtml}</ul>` : ""}
-        		<p>Email (SPF/DMARC): ${data.email.valid ? "Configured" : "Issues found"}</p>
+        		<p class="${data.email.valid ? "status-good" : "status-bad"}">Email (SPF/DMARC): ${data.email.valid ? "Configured" : "Issues found"}</p>
         		${data.email.issues.length > 0 ? `<ul>${emailIssuesHtml}</ul>` : ""}
     		`;
     		const historyResponse = await fetch(`http://localhost:8000/scans/${domain}`, {
@@ -73,7 +74,7 @@
     		for (const scan of historyData){
     			historyHtml = historyHtml + "<li>" + scan.scanned_at + " - Score: " + scan.score + "</li>";
     		}
-    		document.getElementById("results").innerHTML += `<h3>Previous scans</h3><ul>${historyHtml}</ul>`;
+    		document.getElementById("results").innerHTML += `<h3>Previous scans</h3><ul class="history-list">${historyHtml}</ul>`;
 		});
 	</script>
 </body>
