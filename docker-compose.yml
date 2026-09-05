@@ -11,6 +11,7 @@ services:
     environment:
       - SCANNER_URL=http://scanner:8081
       - DB_PATH=/app/data/scans.db
+      - API_KEY=${API_KEY}
     depends_on:
       - scanner
     volumes:
