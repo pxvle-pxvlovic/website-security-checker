@@ -3,7 +3,7 @@
 Point it at a domain, get back a security report: TLS health, HTTP security headers, and email spoofing protection (SPF/DMARC), combined into a scored result, with history saved so you can look back on past scans.
 
 This is a personal learning project. Three services in two different languages, containerized, with authentication and
-persistence; built to expose myself to backend architecture, and Docker.
+persistence; built to expose myself to backend architecture and Docker.
 
 ## What it checks
 
@@ -31,12 +31,13 @@ Services:
   DNS TXT lookups.
 - **`api/`** — Python (FastAPI). Orchestrates the three checks concurrently,
   scores the result, persists it to SQLite, and serves scan history.
-- **`frontend/`** — plain HTML/JS. A form to run a scan and see the report and
-  history, no framework or build step.
+- **`frontend/`** — plain HTML/CSS/JS (`index.html`, `style.css`, `script.js`). A form to run a scan and see the report and history.
 
 They talk over plain HTTP + JSON. Go exposes one endpoint per check
 (`/scan/tls`, `/scan/headers`, `/scan/email`), and Python's `/scan` calls all
 three concurrently (via `asyncio.TaskGroup`) and merges the results.
+Each service has its own `Dockerfile`. `docker-compose.yml` at the repo root
+orchestrates all three together.
 
 ### Go project structure
 
@@ -152,6 +153,11 @@ fully unifying that cleanly needs generics. A partial refactor was the
 deliberate choice, rather than forcing an abstraction the language doesn't
 make clean without a more advanced feature.
 
+**Why `docker-compose.yml` passes `API_KEY=${API_KEY}` explicitly:** environment
+variables from your shell aren't automatically available inside containers. `SCANNER_URL` and `DB_PATH` were already wired through this way, but `API_KEY`
+was initially missed, meaning every request failed authentication inside Docker
+even with a correct key, since the container never received it at all.
+
 ## Status
 
 - [x] TLS/certificate check — Go + Python, tested
@@ -165,8 +171,7 @@ make clean without a more advanced feature.
 - [x] API key authentication on write/history endpoints
 - [x] LICENSE
 - [x] Test files split by concern (Go)
-- [ ] Basic styling
-- [ ] Real deployment
+- [x] Frontend split into index.html, style.cc, script.js
 ## License
 
 MIT - see [LICENSE](LICENSE).
