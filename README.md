@@ -47,7 +47,9 @@ scanner/
 ├── tls.go        # TLS/certificate check
 ├── headers.go    # HTTP security headers check
 ├── email.go      # SPF/DMARC check
-└── main_test.go  # all tests currently live in one file (not yet split by concern)
+├── tls_test.go
+├── headers_test.go
+└── email_test.go
 ```
 
 ## Authentication
@@ -162,7 +164,7 @@ make clean without a more advanced feature.
 - [x] Full Docker Compose setup, all three services, persistent volume
 - [x] API key authentication on write/history endpoints
 - [x] LICENSE
-- [ ] Test files split by concern (Go)
+- [x] Test files split by concern (Go)
 - [ ] Basic styling
 - [ ] Real deployment
 ## License
