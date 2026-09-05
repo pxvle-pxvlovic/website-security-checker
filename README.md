@@ -161,12 +161,10 @@ make clean without a more advanced feature.
 - [x] Frontend (plain HTML/JS) — scan form, results, history
 - [x] Full Docker Compose setup, all three services, persistent volume
 - [x] API key authentication on write/history endpoints
+- [x] LICENSE
 - [ ] Test files split by concern (Go)
-- [ ] LICENSE
 - [ ] Basic styling
 - [ ] Real deployment
-- [ ] Decide when to make the repo public
-
 ## License
 
 MIT - see [LICENSE](LICENSE).
