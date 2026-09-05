@@ -171,7 +171,8 @@ even with a correct key, since the container never received it at all.
 - [x] API key authentication on write/history endpoints
 - [x] LICENSE
 - [x] Test files split by concern (Go)
-- [x] Frontend split into index.html, style.cc, script.js
+- [x] Frontend split into index.html, style.css, script.js
+
 ## License
 
 MIT - see [LICENSE](LICENSE).
